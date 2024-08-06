@@ -11,7 +11,7 @@ def fetch_latest_data():
     """
     try:
         client = storage.Client()
-        bucket_name = 'aclgrafts-lindyscore-430915-staging'  # Update with your actual bucket name
+        bucket_name = 'lindyscore'  # Update with your actual bucket name
         file_name = 'Files.zip'
         bucket = client.bucket(bucket_name)
         blob = bucket.blob(file_name)
@@ -69,4 +69,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
