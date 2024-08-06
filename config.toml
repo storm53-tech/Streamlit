@@ -2,3 +2,9 @@
 headless = true
 port = 8501
 enableCORS = false
+
+[global]
+logLevel = "info"
+
+[environment]
+GOOGLE_APPLICATION_CREDENTIALS = "aclgrafts-lindyscore-430915-4c0c0fb145b4.json"
