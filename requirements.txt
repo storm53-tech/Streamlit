@@ -1,4 +1,9 @@
-streamlit
-Flask
-pandas
-google-cloud-storage
+pip>=23.0
+setuptools>=65.0
+wheel>=0.38.4
+Flask==2.0.3
+pandas==2.1.1
+google-cloud-storage==2.18.0
+werkzeug==2.0.3
+numpy==1.24.2
+streamlit==1.24.0
