@@ -1,35 +1,24 @@
-import os
-from flask import Flask, jsonify
 import pandas as pd
 import datetime
 import zipfile
 import io
 from google.cloud import storage
-
-app = Flask(__name__)
+import streamlit as st
 
 def fetch_latest_data():
     """
-    Fetch data from Google Cloud Storage and return a DataFrame with graft data.
+    Fetch data from Google Cloud Storage and return it as a DataFrame.
     """
     try:
-        # Initialize the Cloud Storage client
         client = storage.Client()
-
-        # Define your bucket and file
-        bucket_name = 'lindyscore'
+        bucket_name = 'aclgrafts-lindyscore-430915-staging'  # Update with your actual bucket name
         file_name = 'Files.zip'
-
-        # Get the bucket and blob (file)
         bucket = client.bucket(bucket_name)
         blob = bucket.blob(file_name)
-
-        # Download the file content
         zip_content = blob.download_as_bytes()
 
         # Extract the zip file
         with zipfile.ZipFile(io.BytesIO(zip_content)) as z:
-            # Assuming the zip file contains a CSV with graft data
             for file_info in z.infolist():
                 with z.open(file_info) as file:
                     df = pd.read_csv(file)
@@ -37,13 +26,12 @@ def fetch_latest_data():
 
         return df
     except Exception as e:
-        app.logger.error(f"Error fetching data: {e}")
+        st.error(f"Error fetching data: {e}")
         return pd.DataFrame()
 
 def calculate_lindy_scores(graft_data):
     """
     Calculate Lindy scores for each graft type based on various factors.
-    Returns a dictionary with graft types as keys and their Lindy scores as values.
     """
     current_year = datetime.datetime.now().year
 
@@ -62,28 +50,23 @@ def calculate_lindy_scores(graft_data):
     scores = {index: lindy_score(row) for index, row in graft_data.iterrows()}
     return scores
 
-@app.route('/', methods=['GET'])
-def get_lindy_scores():
-    """
-    HTTP endpoint to fetch the latest graft data, calculate Lindy scores,
-    and return them as a JSON response.
-    """
-    try:
-        df = fetch_latest_data()
-        if df.empty:
-            return jsonify({"error": "No data available"}), 404
+def main():
+    st.title("Lindy Score Calculator")
+
+    # Fetch and display data
+    df = fetch_latest_data()
+    if not df.empty:
+        st.write("Graft Data", df)
 
         # Set index and calculate scores
         df.set_index('graft_type', inplace=True)
         scores = calculate_lindy_scores(df)
 
-        # Return results as JSON
-        return jsonify(scores)
-    except Exception as e:
-        app.logger.error(f"Error processing data: {e}")
-        return jsonify({"error": str(e)}), 500
+        # Display scores
+        st.write("Lindy Scores", scores)
+    else:
+        st.write("No data available.")
 
-if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 8080))
-    app.run(host='0.0.0.0', port=port)
+if __name__ == "__main__":
+    main()
 
