@@ -1,10 +1,8 @@
 import pandas as pd
 import zipfile
 import io
-from flask import Flask, jsonify
 from google.cloud import storage
-
-app = Flask(__name__)
+import streamlit as st
 
 def fetch_latest_data():
     """
@@ -27,7 +25,8 @@ def fetch_latest_data():
 
         return df
     except Exception as e:
-        return None, f"Error fetching data: {e}"
+        st.error(f"Error fetching data: {e}")
+        return pd.DataFrame()
 
 def calculate_lindy_scores(graft_data):
     """
@@ -50,27 +49,29 @@ def calculate_lindy_scores(graft_data):
     graft_data['lindy_score'] = graft_data.apply(lindy_score, axis=1)
     return graft_data
 
-@app.route('/latest_lindy_score', methods=['GET'])
-def latest_lindy_score():
-    df, error = fetch_latest_data()
-    if error:
-        return jsonify({"error": error}), 500
+def main():
+    st.title("Lindy Score Calculator")
 
-    if df is None or df.empty:
-        return jsonify({"error": "No data available"}), 404
+    # Fetch and display data
+    df = fetch_latest_data()
+    if not df.empty:
+        st.write("Graft Data", df)
 
-    # Set index and calculate scores
-    try:
-        df.set_index('graft_type', inplace=True)
-        scores_df = calculate_lindy_scores(df)
-        result = scores_df[['lindy_score']].to_dict(orient='index')
-        return jsonify(result)
-    except Exception as e:
-        return jsonify({"error": f"Error processing data: {e}"}), 500
+        # Set index and calculate scores
+        try:
+            df.set_index('graft_type', inplace=True)
+            scores_df = calculate_lindy_scores(df)
+            st.write("Lindy Scores", scores_df[['lindy_score']])
+        except KeyError as e:
+            st.error(f"KeyError: {e}. Please ensure 'graft_type' is a column in your CSV.")
+        except Exception as e:
+            st.error(f"Error processing data: {e}")
+    else:
+        st.write("No data available.")
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080)
-
+# Run the Streamlit app
+if __name__ == "__main__":
+    main()
 
 
 
