@@ -2,8 +2,7 @@ import pandas as pd
 import zipfile
 import io
 import requests
-import streamlit as st
-import datetime
+from google.cloud import storage
 
 def fetch_latest_data():
     """
@@ -33,8 +32,14 @@ def fetch_latest_data():
                     try:
                         # Read CSV data
                         df = pd.read_csv(csv_file, delimiter=',', engine='python')
+                        df.columns = df.columns.str.strip()  # Remove any extra spaces from column names
                         print("Columns in DataFrame:", df.columns)
                         print("DataFrame preview:\n", df.head())
+                        
+                        # Check if DataFrame is empty
+                        if df.empty:
+                            print("DataFrame is empty.")
+                        
                     except pd.errors.EmptyDataError:
                         print("No data found in CSV file.")
                     except pd.errors.ParserError:
