@@ -55,13 +55,18 @@ def main():
     # Fetch and display data
     df = fetch_latest_data()
     if not df.empty:
-        st.write("Graft Data", df)
+        st.write("Graft Data")
+        st.write(df)
+
+        # Debug: Print columns to ensure 'graft_type' is present
+        st.write("Columns in DataFrame:", df.columns)
 
         # Set index and calculate scores
         try:
             df.set_index('graft_type', inplace=True)
             scores_df = calculate_lindy_scores(df)
-            st.write("Lindy Scores", scores_df[['lindy_score']])
+            st.write("Lindy Scores")
+            st.write(scores_df[['lindy_score']])
         except KeyError as e:
             st.error(f"KeyError: {e}. Please ensure 'graft_type' is a column in your CSV.")
         except Exception as e:
@@ -72,7 +77,3 @@ def main():
 # Run the Streamlit app
 if __name__ == "__main__":
     main()
-
-
-
-
