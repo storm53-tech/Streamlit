@@ -5,33 +5,65 @@ from google.cloud import storage
 
 def fetch_latest_data():
     """
-    Fetch data from Google Cloud Storage and return it as a DataFrame.
+    Fetch data from a publicly accessible Google Cloud Storage URL and return it as a DataFrame.
     """
     try:
-        client = storage.Client()
-        bucket_name = 'lindyscore'  # Update with your actual bucket name
-        file_name = 'Files.zip'
-        bucket = client.bucket(bucket_name)
-        blob = bucket.blob(file_name)
-        zip_content = blob.download_as_bytes()
-
+        # Public URL of the file
+        public_url = 'https://storage.googleapis.com/lindyscore/Files.zip'
+        
+        # Download the zip file from the public URL
+        response = requests.get(public_url)
+        response.raise_for_status()  # Raise an error for bad responses (4xx and 5xx)
+        
         # Extract the zip file
-        with zipfile.ZipFile(io.BytesIO(zip_content)) as z:
-            for file_info in z.infolist():
-                print(f"Extracting file: {file_info.filename}")
-                with z.open(file_info) as file:
-                    # Debug: Print first few lines to check content
-                    content = file.read().decode('utf-8')
-                    print(content)  # Print the content of the file
-                    df = pd.read_csv(io.StringIO(content), delimiter=',', engine='python', on_bad_lines='skip')
-                    break  # Assuming there's only one file in the zip
+        with zipfile.ZipFile(io.BytesIO(response.content)) as z:
+            # List all files in the zip
+            file_list = z.namelist()
+            print(f"Files in the ZIP archive: {file_list}")
+            
+            # Check if the CSV file is in the zip
+            csv_file = None
+            for file_name in file_list:
+                if file_name.endswith('.csv'):
+                    csv_file = file_name
+                    break
+            
+            if csv_file is None:
+                print("No CSV file found in the ZIP archive.")
+                return pd.DataFrame()
+            
+            print(f"Extracting file: {csv_file}")
+            
+            with z.open(csv_file) as file:
+                # Print the raw content of the CSV file for debugging
+                raw_content = file.read().decode('utf-8')
+                print("Raw CSV content:\n", raw_content)
+                
+                # Convert string content to a file-like object
+                csv_file = io.StringIO(raw_content)
+                
+                try:
+                    # Read CSV data
+                    df = pd.read_csv(csv_file, delimiter=',', engine='python')
+                    df.columns = df.columns.str.strip()  # Remove any extra spaces from column names
+                    print("Cleaned Columns in DataFrame:", df.columns)  # Debug print for columns
+                    print("DataFrame preview:\n", df.head())
+                    
+                    # Check if DataFrame is empty
+                    if df.empty:
+                        print("DataFrame is empty.")
+                    
+                except pd.errors.EmptyDataError:
+                    print("No data found in CSV file.")
+                except pd.errors.ParserError:
+                    print("Error parsing CSV file.")
+                except Exception as e:
+                    print(f"General error: {e}")
 
         return df
     except Exception as e:
         print(f"Error fetching data: {e}")
         return pd.DataFrame()
-
-
 
 def calculate_lindy_scores(graft_data):
     """
