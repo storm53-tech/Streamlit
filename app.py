@@ -28,9 +28,8 @@ def fetch_latest_data():
                     # Convert string content to a file-like object
                     csv_file = io.StringIO(content)
                     
-                    # Read CSV with different options
+                    # Try reading with different options if needed
                     try:
-                        # Read the CSV file, specifying delimiter and header row
                         df = pd.read_csv(csv_file, delimiter=',', engine='python', header=0, on_bad_lines='skip')
                         print("Columns in DataFrame:", df.columns)  # Debugging
                         print("DataFrame preview:\n", df.head())  # Debugging
@@ -50,7 +49,6 @@ def fetch_latest_data():
     except Exception as e:
         print(f"Error fetching data: {e}")
         return pd.DataFrame()
-
 
 
 def calculate_lindy_scores(graft_data):
