@@ -11,7 +11,7 @@ def fetch_latest_data():
     """
     try:
         # Public URL of the file
-        public_url = 'https://storage.googleapis.com/your-bucket-name/Files.zip'  # Update with your actual public file URL
+        public_url = 'https://storage.googleapis.com/lindyscore/Files.zip'  # Update with your actual public file URL
 
         # Download the zip file from the public URL
         response = requests.get(public_url)
@@ -98,4 +98,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
