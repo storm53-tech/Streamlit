@@ -1,22 +1,24 @@
 import pandas as pd
 import zipfile
 import io
-from google.cloud import storage
+import requests
+import streamlit as st
+import datetime
 
 def fetch_latest_data():
     """
-    Fetch data from Google Cloud Storage and return it as a DataFrame.
+    Fetch data from a publicly accessible Google Cloud Storage URL and return it as a DataFrame.
     """
     try:
-        client = storage.Client()
-        bucket_name = 'your-bucket-name'  # Update with your actual bucket name
-        file_name = 'Files.zip'
-        bucket = client.bucket(bucket_name)
-        blob = bucket.blob(file_name)
-        zip_content = blob.download_as_bytes()
+        # Public URL of the file
+        public_url = 'https://storage.googleapis.com/your-bucket-name/Files.zip'  # Update with your actual public file URL
+
+        # Download the zip file from the public URL
+        response = requests.get(public_url)
+        response.raise_for_status()  # Raise an error for bad responses (4xx and 5xx)
 
         # Extract the zip file
-        with zipfile.ZipFile(io.BytesIO(zip_content)) as z:
+        with zipfile.ZipFile(io.BytesIO(response.content)) as z:
             for file_info in z.infolist():
                 print(f"Extracting file: {file_info.filename}")
                 with z.open(file_info) as file:
@@ -96,3 +98,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
