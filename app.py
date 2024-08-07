@@ -1,8 +1,8 @@
 import pandas as pd
 import zipfile
 import io
-import requests  # Ensure requests is imported
-import streamlit as st  # Ensure Streamlit is imported
+import requests
+import streamlit as st
 import datetime
 
 def fetch_latest_data():
@@ -11,7 +11,7 @@ def fetch_latest_data():
     """
     try:
         # Public URL of the file
-        public_url = 'https://storage.googleapis.com/lindyscore/graft_data.csv.zip'
+        public_url = 'https://storage.googleapis.com/lindyscore/Files.zip'
         
         # Download the zip file from the public URL
         response = requests.get(public_url)
@@ -19,29 +19,24 @@ def fetch_latest_data():
         
         # Extract the zip file
         with zipfile.ZipFile(io.BytesIO(response.content)) as z:
-            csv_files = [file_info for file_info in z.infolist() if file_info.filename.endswith('.csv')]
+            file_names = z.namelist()
+            print("Files in the zip archive:", file_names)
+            
+            csv_files = [name for name in file_names if name.endswith('.csv')]
             
             if len(csv_files) != 1:
-                raise ValueError(f"Expected exactly one CSV file, but found {len(csv_files)}.")
+                raise ValueError(f"Expected exactly one CSV file, but found {len(csv_files)}: {csv_files}")
+
+            csv_file_name = csv_files[0]
+            print(f"Processing CSV file: {csv_file_name}")
             
-            file_info = csv_files[0]
-            print(f"Extracting file: {file_info.filename}")
-            with z.open(file_info) as file:
+            with z.open(csv_file_name) as file:
                 # Read CSV data directly from the file object
                 try:
                     # Read CSV data
                     df = pd.read_csv(file, delimiter=',', engine='python')
-                    
-                    # Print the first few lines of the file for debugging
-                    print("First few lines of CSV data:")
-                    for line in file.readlines()[:5]:
-                        print(line)
-                    
-                    # Remove any extra spaces from column names
-                    df.columns = df.columns.str.strip()
-                    
-                    # Debug print for columns and DataFrame preview
-                    print("Columns in DataFrame:", df.columns)
+                    df.columns = df.columns.str.strip()  # Remove any extra spaces from column names
+                    print("Columns in DataFrame:", df.columns)  # Debug print for columns
                     print("DataFrame preview:\n", df.head())
                     
                     # Check if DataFrame is empty
