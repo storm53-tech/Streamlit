@@ -21,7 +21,8 @@ def fetch_latest_data():
         with zipfile.ZipFile(io.BytesIO(zip_content)) as z:
             for file_info in z.infolist():
                 with z.open(file_info) as file:
-                    df = pd.read_csv(file)
+                    # Read CSV with the correct delimiter
+                    df = pd.read_csv(file, delimiter=',')  # Explicitly specify comma delimiter
                     break  # Assuming there's only one file in the zip
 
         return df
@@ -53,21 +54,6 @@ def calculate_lindy_scores(graft_data):
 def main():
     st.title("Lindy Score Calculator")
 
-    # Fetch and display data
-    df = fetch_latest_data()
-    if not df.empty:
-        st.write("Graft Data", df)
+    # Fetch and di
 
-        # Set index and calculate scores
-        df.set_index('graft_type', inplace=True)
-        scores = calculate_lindy_scores(df)
-
-        # Display scores
-        st.write("Lindy Scores", scores)
-    else:
-        st.write("No data available.")
-
-# Run the Streamlit app
-if __name__ == "__main__":
-    main()
 
