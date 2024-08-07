@@ -1,9 +1,8 @@
 import pandas as pd
 import zipfile
 import io
-import requests
-import streamlit as st
-import datetime
+import requests  # Ensure requests is imported
+
 def fetch_latest_data():
     """
     Fetch data from a publicly accessible Google Cloud Storage URL and return it as a DataFrame.
@@ -11,11 +10,11 @@ def fetch_latest_data():
     try:
         # Public URL of the file
         public_url = 'https://storage.googleapis.com/lindyscore/Files.zip'
-
+        
         # Download the zip file from the public URL
         response = requests.get(public_url)
         response.raise_for_status()  # Raise an error for bad responses (4xx and 5xx)
-
+        
         # Extract the zip file
         with zipfile.ZipFile(io.BytesIO(response.content)) as z:
             for file_info in z.infolist():
@@ -53,7 +52,6 @@ def fetch_latest_data():
     except Exception as e:
         print(f"Error fetching data: {e}")
         return pd.DataFrame()
-
 
 def calculate_lindy_scores(graft_data):
     """
