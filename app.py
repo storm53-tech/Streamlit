@@ -1,5 +1,4 @@
 import pandas as pd
-import datetime
 import zipfile
 import io
 from google.cloud import storage
@@ -19,10 +18,9 @@ def fetch_latest_data():
 
         # Extract the zip file
         with zipfile.ZipFile(io.BytesIO(zip_content)) as z:
+            # List files in the zip and read the first CSV file
             for file_info in z.infolist():
                 with z.open(file_info) as file:
-                    # Debug: Print first few lines to check content
-                    print(file.read().decode('utf-8'))
                     df = pd.read_csv(file, delimiter=',', engine='python', on_bad_lines='skip')
                     break  # Assuming there's only one file in the zip
 
