@@ -1,8 +1,10 @@
 import pandas as pd
 import zipfile
 import io
+from flask import Flask, jsonify
 from google.cloud import storage
-import streamlit as st
+
+app = Flask(__name__)
 
 def fetch_latest_data():
     """
@@ -10,33 +12,28 @@ def fetch_latest_data():
     """
     try:
         client = storage.Client()
-        bucket_name = 'lindyscore'  # Update with your actual bucket name
+        bucket_name = 'lindyscore'
         file_name = 'Files.zip'
         bucket = client.bucket(bucket_name)
         blob = bucket.blob(file_name)
         zip_content = blob.download_as_bytes()
 
+        # Extract the zip file
         with zipfile.ZipFile(io.BytesIO(zip_content)) as z:
             for file_info in z.infolist():
                 with z.open(file_info) as file:
-                    # Debug: Print the CSV content to ensure it's read correctly
-                    csv_content = file.read().decode('utf-8')
-                    print("CSV Content:\n", csv_content)
-                    
-                    # Convert CSV content to DataFrame
-                    df = pd.read_csv(io.StringIO(csv_content), delimiter=',', engine='python', on_bad_lines='skip')
+                    df = pd.read_csv(file, engine='python', on_bad_lines='skip')
                     break  # Assuming there's only one file in the zip
 
         return df
     except Exception as e:
-        st.error(f"Error fetching data: {e}")
-        return pd.DataFrame()
+        return None, f"Error fetching data: {e}"
 
 def calculate_lindy_scores(graft_data):
     """
     Calculate Lindy scores for each graft type based on various factors.
     """
-    current_year = datetime.datetime.now().year
+    current_year = pd.Timestamp.now().year
 
     def lindy_score(graft):
         age = current_year - graft["introduced"]
@@ -50,29 +47,30 @@ def calculate_lindy_scores(graft_data):
                  biomechanical_factor * citation_factor)
         return score
 
-    scores = {index: lindy_score(row) for index, row in graft_data.iterrows()}
-    return scores
+    graft_data['lindy_score'] = graft_data.apply(lindy_score, axis=1)
+    return graft_data
 
-def main():
-    st.title("Lindy Score Calculator")
+@app.route('/latest_lindy_score', methods=['GET'])
+def latest_lindy_score():
+    df, error = fetch_latest_data()
+    if error:
+        return jsonify({"error": error}), 500
 
-    # Fetch and display data
-    df = fetch_latest_data()
-    if not df.empty:
-        st.write("Graft Data", df)
+    if df is None or df.empty:
+        return jsonify({"error": "No data available"}), 404
 
-        # Set index and calculate scores
+    # Set index and calculate scores
+    try:
         df.set_index('graft_type', inplace=True)
-        scores = calculate_lindy_scores(df)
+        scores_df = calculate_lindy_scores(df)
+        result = scores_df[['lindy_score']].to_dict(orient='index')
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": f"Error processing data: {e}"}), 500
 
-        # Display scores
-        st.write("Lindy Scores", scores)
-    else:
-        st.write("No data available.")
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8080)
 
-# Run the Streamlit app
-if __name__ == "__main__":
-    main()
 
 
 
