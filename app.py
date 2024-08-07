@@ -4,7 +4,6 @@ import io
 import requests
 import streamlit as st
 import datetime
-
 def fetch_latest_data():
     """
     Fetch data from a publicly accessible Google Cloud Storage URL and return it as a DataFrame.
@@ -34,7 +33,7 @@ def fetch_latest_data():
                         # Read CSV data
                         df = pd.read_csv(csv_file, delimiter=',', engine='python')
                         df.columns = df.columns.str.strip()  # Remove any extra spaces from column names
-                        print("Columns in DataFrame:", df.columns)
+                        print("Columns in DataFrame:", df.columns)  # Debug print for columns
                         print("DataFrame preview:\n", df.head())
                         
                         # Check if DataFrame is empty
@@ -54,6 +53,7 @@ def fetch_latest_data():
     except Exception as e:
         print(f"Error fetching data: {e}")
         return pd.DataFrame()
+
 
 def calculate_lindy_scores(graft_data):
     """
