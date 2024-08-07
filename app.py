@@ -2,6 +2,8 @@ import pandas as pd
 import zipfile
 import io
 from google.cloud import storage
+import datetime
+import streamlit as st
 
 def fetch_latest_data():
     """
@@ -18,11 +20,11 @@ def fetch_latest_data():
         # Extract the zip file
         with zipfile.ZipFile(io.BytesIO(zip_content)) as z:
             for file_info in z.infolist():
-                print(f"Extracting file: {file_info.filename}")
+                print(f"Extracting file: {file_info.filename}")  # Debugging
                 with z.open(file_info) as file:
                     # Read and print the content to check
                     content = file.read().decode('utf-8')
-                    print("File content:\n", content)  # Print the content of the file
+                    print("File content:\n", content)  # Debugging
                     
                     # Convert string content to a file-like object
                     csv_file = io.StringIO(content)
@@ -30,14 +32,17 @@ def fetch_latest_data():
                     # Read CSV with different options
                     try:
                         df = pd.read_csv(csv_file, delimiter=',', engine='python', on_bad_lines='skip')
-                        print("Columns in DataFrame:", df.columns)
-                        print("DataFrame preview:\n", df.head())
+                        print("Columns in DataFrame:", df.columns)  # Debugging
+                        print("DataFrame preview:\n", df.head())  # Debugging
                     except pd.errors.EmptyDataError:
                         print("No data found in CSV file.")
+                        return pd.DataFrame()
                     except pd.errors.ParserError:
                         print("Error parsing CSV file.")
+                        return pd.DataFrame()
                     except Exception as e:
                         print(f"General error: {e}")
+                        return pd.DataFrame()
                     
                     break  # Assuming there's only one file in the zip
 
@@ -45,7 +50,6 @@ def fetch_latest_data():
     except Exception as e:
         print(f"Error fetching data: {e}")
         return pd.DataFrame()
-
 
 def calculate_lindy_scores(graft_data):
     """
@@ -65,9 +69,15 @@ def calculate_lindy_scores(graft_data):
                  biomechanical_factor * citation_factor)
         return score
     
-    scores = {index: lindy_score(row) for index, row in graft_data.iterrows()}
-    return scores
-        
+    # Ensure the DataFrame contains the expected columns
+    required_columns = ['introduced', 'PRO', 'lysholm_score', 'LSI', 'RTS', 'long_term_success', 'complications', 'biomechanical_studies', 'citation_count']
+    if all(col in graft_data.columns for col in required_columns):
+        scores = {index: lindy_score(row) for index, row in graft_data.iterrows()}
+        return scores
+    else:
+        print("DataFrame does not have the required columns.")
+        return {}
+
 def main():
     st.title("Lindy Score Calculator")
         
@@ -77,14 +87,16 @@ def main():
         st.write("Graft Data", df)
             
         # Set index and calculate scores
-        df.set_index('graft_type', inplace=True)
-        scores = calculate_lindy_scores(df)
+        if 'graft_type' in df.columns:
+            df.set_index('graft_type', inplace=True)
+            scores = calculate_lindy_scores(df)
 
-        # Display scores
-        st.write("Lindy Scores", scores)
+            # Display scores
+            st.write("Lindy Scores", scores)
+        else:
+            st.write("Missing 'graft_type' column in the DataFrame.")
     else:
         st.write("No data available.")
 
 if __name__ == "__main__":
     main()
-
