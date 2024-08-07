@@ -2,34 +2,45 @@ import pandas as pd
 import zipfile
 import io
 from google.cloud import storage
-import streamlit as st
 
 def fetch_latest_data():
     """
     Fetch data from Google Cloud Storage and return it as a DataFrame.
     """
     try:
+        # Initialize the Google Cloud Storage client
         client = storage.Client()
-        bucket_name = 'lindyscore'  # Update with your actual bucket name
-        file_name = 'Files.zip'
+        bucket_name = 'lindyscore'  # Your actual bucket name
+        file_name = 'Files.zip'  # The name of the zip file in your bucket
+
+        # Get the bucket and blob (file) from the bucket
         bucket = client.bucket(bucket_name)
         blob = bucket.blob(file_name)
-        zip_content = blob.download_as_bytes()
+        zip_content = blob.download_as_bytes()  # Download the zip file as bytes
 
         # Extract the zip file
         with zipfile.ZipFile(io.BytesIO(zip_content)) as z:
             for file_info in z.infolist():
+                # Open the first file in the zip
                 with z.open(file_info) as file:
-                    # Debug: Print first few lines to check content
-                    print(file.read().decode('utf-8'))
-                    df = pd.read_csv(file, delimiter=',', engine='python', on_bad_lines='skip')
-                    break  # Assuming there's only one file in the zip
+                    # Read the content of the file and decode it
+                    content = file.read().decode('utf-8')
+                    
+                    # Print the content for debugging purposes
+                    print("CSV Content:", content)
 
-        print("Columns in DataFrame:", df.columns)
-        return df
+                    # Convert the CSV content into a DataFrame
+                    df = pd.read_csv(io.StringIO(content), delimiter=',', engine='python', on_bad_lines='skip')
+
+                    # Print DataFrame columns for debugging purposes
+                    print("Columns in DataFrame:", df.columns)
+
+                    # Return the DataFrame
+                    return df
     except Exception as e:
-        st.error(f"Error fetching data: {e}")
+        print(f"Error fetching data: {e}")
         return pd.DataFrame()
+
 
 def calculate_lindy_scores(graft_data):
     """
