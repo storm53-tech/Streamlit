@@ -1,10 +1,3 @@
-import pandas as pd
-import zipfile
-import io
-import requests  # Ensure requests is imported
-import streamlit as st
-import datetime
-
 def fetch_latest_data():
     """
     Fetch data from a publicly accessible Google Cloud Storage URL and return it as a DataFrame.
@@ -19,36 +12,47 @@ def fetch_latest_data():
         
         # Extract the zip file
         with zipfile.ZipFile(io.BytesIO(response.content)) as z:
-            for file_info in z.infolist():
-                print(f"Extracting file: {file_info.filename}")
-                with z.open(file_info) as file:
-                    # Read CSV data directly from the file object
-                    try:
-                        # Read CSV data
-                        df = pd.read_csv(file, delimiter=',', engine='python')
-                        df.columns = df.columns.str.strip()  # Remove any extra spaces from column names
-                        print("Columns in DataFrame:", df.columns)  # Debug print for columns
-                        print("DataFrame preview:\n", df.head())
-                        
-                        # Check if DataFrame is empty
-                        if df.empty:
-                            print("DataFrame is empty.")
-                        
-                        return df
+            # List all files in the zip
+            file_list = z.namelist()
+            print(f"Files in the ZIP archive: {file_list}")
+            
+            # Check if the CSV file is in the zip
+            csv_file = None
+            for file_name in file_list:
+                if file_name.endswith('.csv'):
+                    csv_file = file_name
+                    break
+            
+            if csv_file is None:
+                print("No CSV file found in the ZIP archive.")
+                return pd.DataFrame()
+            
+            print(f"Extracting file: {csv_file}")
+            
+            with z.open(csv_file) as file:
+                # Read CSV data directly from the file object
+                try:
+                    df = pd.read_csv(file, delimiter=',', engine='python')
+                    df.columns = df.columns.str.strip()  # Remove any extra spaces from column names
+                    print("Columns in DataFrame:", df.columns)  # Debug print for columns
+                    print("DataFrame preview:\n", df.head())
                     
-                    except pd.errors.EmptyDataError:
-                        print("No data found in CSV file.")
-                    except pd.errors.ParserError:
-                        print("Error parsing CSV file.")
-                    except Exception as e:
-                        print(f"General error: {e}")
+                    # Check if DataFrame is empty
+                    if df.empty:
+                        print("DataFrame is empty.")
                     
-                    break  # Assuming there's only one file in the zip
+                except pd.errors.EmptyDataError:
+                    print("No data found in CSV file.")
+                except pd.errors.ParserError:
+                    print("Error parsing CSV file.")
+                except Exception as e:
+                    print(f"General error: {e}")
 
-        return pd.DataFrame()  # Return empty DataFrame if no data found
+        return df
     except Exception as e:
         print(f"Error fetching data: {e}")
         return pd.DataFrame()
+
 
 def calculate_lindy_scores(graft_data):
     """
