@@ -20,23 +20,31 @@ def fetch_latest_data():
             for file_info in z.infolist():
                 print(f"Extracting file: {file_info.filename}")
                 with z.open(file_info) as file:
-                    # Debug: Print first few lines to check content
+                    # Read and print the content to check
                     content = file.read().decode('utf-8')
                     print("File content:\n", content)  # Print the content of the file
                     
-                    # Use StringIO to convert string data into a file-like object
+                    # Convert string content to a file-like object
                     csv_file = io.StringIO(content)
-                    df = pd.read_csv(csv_file, delimiter=',', engine='python', on_bad_lines='skip')
+                    
+                    # Read CSV with different options
+                    try:
+                        df = pd.read_csv(csv_file, delimiter=',', engine='python', on_bad_lines='skip')
+                        print("Columns in DataFrame:", df.columns)
+                        print("DataFrame preview:\n", df.head())
+                    except pd.errors.EmptyDataError:
+                        print("No data found in CSV file.")
+                    except pd.errors.ParserError:
+                        print("Error parsing CSV file.")
+                    except Exception as e:
+                        print(f"General error: {e}")
+                    
                     break  # Assuming there's only one file in the zip
 
-        print("Columns in DataFrame:", df.columns)
-        print("DataFrame preview:\n", df.head())
-        
         return df
     except Exception as e:
         print(f"Error fetching data: {e}")
         return pd.DataFrame()
-
 
 
 def calculate_lindy_scores(graft_data):
