@@ -35,7 +35,7 @@ def calculate_lindy_scores(graft_data):
     """
     Calculate Lindy scores for each graft type based on various factors.
     """
-    current_year = pd.Timestamp.now().year
+    current_year = datetime.datetime.now().year
 
     def lindy_score(graft):
         age = current_year - graft["introduced"]
@@ -49,8 +49,8 @@ def calculate_lindy_scores(graft_data):
                  biomechanical_factor * citation_factor)
         return score
 
-    graft_data['lindy_score'] = graft_data.apply(lindy_score, axis=1)
-    return graft_data
+    scores = {index: lindy_score(row) for index, row in graft_data.iterrows()}
+    return scores
 
 def main():
     st.title("Lindy Score Calculator")
@@ -58,28 +58,19 @@ def main():
     # Fetch and display data
     df = fetch_latest_data()
     if not df.empty:
-        st.write("Graft Data")
-        st.write(df)
+        st.write("Graft Data", df)
 
-        # Debug: Print first few rows and columns to ensure 'graft_type' is present
-        st.write("Columns in DataFrame:", df.columns.tolist())
-        st.write("First few rows of the DataFrame:")
-        st.write(df.head())
-
-        # Set index and calculate scores
-        try:
+        # Ensure 'graft_type' is a valid column and set index
+        if 'graft_type' in df.columns:
             df.set_index('graft_type', inplace=True)
-            scores_df = calculate_lindy_scores(df)
-            st.write("Lindy Scores")
-            st.write(scores_df[['lindy_score']])
-        except KeyError as e:
-            st.error(f"KeyError: {e}. Please ensure 'graft_type' is a column in your CSV.")
-        except Exception as e:
-            st.error(f"Error processing data: {e}")
+            # Calculate and display scores
+            scores = calculate_lindy_scores(df)
+            st.write("Lindy Scores", scores)
+        else:
+            st.error("Column 'graft_type' not found in the CSV data.")
     else:
         st.write("No data available.")
 
 # Run the Streamlit app
 if __name__ == "__main__":
     main()
-
