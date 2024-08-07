@@ -2,7 +2,8 @@ import pandas as pd
 import zipfile
 import io
 import requests
-from google.cloud import storage
+import datetime
+import streamlit as st
 
 def fetch_latest_data():
     """
@@ -54,7 +55,6 @@ def fetch_latest_data():
         print(f"Error fetching data: {e}")
         return pd.DataFrame()
 
-
 def calculate_lindy_scores(graft_data):
     """
     Calculate Lindy scores for each graft type based on various factors.
@@ -90,7 +90,7 @@ def main():
     if not df.empty:
         st.write("Graft Data", df)
             
-        # Set index and calculate scores
+        # Check if 'graft_type' column exists
         if 'graft_type' in df.columns:
             df.set_index('graft_type', inplace=True)
             scores = calculate_lindy_scores(df)
@@ -104,3 +104,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
