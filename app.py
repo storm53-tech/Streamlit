@@ -22,14 +22,21 @@ def fetch_latest_data():
                 with z.open(file_info) as file:
                     # Debug: Print first few lines to check content
                     content = file.read().decode('utf-8')
-                    print(content)  # Print the content of the file
-                    df = pd.read_csv(io.StringIO(content), delimiter=',', engine='python', on_bad_lines='skip')
+                    print("File content:\n", content)  # Print the content of the file
+                    
+                    # Use StringIO to convert string data into a file-like object
+                    csv_file = io.StringIO(content)
+                    df = pd.read_csv(csv_file, delimiter=',', engine='python', on_bad_lines='skip')
                     break  # Assuming there's only one file in the zip
 
+        print("Columns in DataFrame:", df.columns)
+        print("DataFrame preview:\n", df.head())
+        
         return df
     except Exception as e:
         print(f"Error fetching data: {e}")
         return pd.DataFrame()
+
 
 
 def calculate_lindy_scores(graft_data):
