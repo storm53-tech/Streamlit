@@ -21,24 +21,16 @@ def fetch_latest_data():
         with zipfile.ZipFile(io.BytesIO(zip_content)) as z:
             for file_info in z.infolist():
                 with z.open(file_info) as file:
-                    try:
-                        # Read CSV file with additional parameters
-                        df = pd.read_csv(file, delimiter=',', engine='python')
-                        # Check for potential issues with the DataFrame
-                        if df.empty:
-                            raise ValueError("DataFrame is empty. Check CSV file format.")
-                    except pd.errors.ParserError as parse_error:
-                        st.error(f"CSV parsing error: {parse_error}")
-                        return pd.DataFrame()
-                    except Exception as e:
-                        st.error(f"Error reading CSV file: {e}")
-                        return pd.DataFrame()
+                    # Debug: Print first few lines to check content
+                    print(file.read().decode('utf-8'))
+                    df = pd.read_csv(file, delimiter=',', engine='python', on_bad_lines='skip')
                     break  # Assuming there's only one file in the zip
 
         return df
     except Exception as e:
         st.error(f"Error fetching data: {e}")
         return pd.DataFrame()
+
 
 
 def calculate_lindy_scores(graft_data):
