@@ -96,17 +96,17 @@ def calculate_lindy_scores(graft_data):
 
 def main():
     st.title("Lindy Score Calculator")
-        
+    
     # Fetch and display data
     df = fetch_latest_data()
     if not df.empty:
         st.write("Graft Data", df)
-            
-        # Set index and calculate scores
+        
+        # Check if 'graft_type' column is present
         if 'graft_type' in df.columns:
             df.set_index('graft_type', inplace=True)
             scores = calculate_lindy_scores(df)
-
+            
             # Display scores
             st.write("Lindy Scores", scores)
         else:
