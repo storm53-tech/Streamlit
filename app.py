@@ -23,7 +23,10 @@ def fetch_latest_data():
                 with z.open(file_info) as file:
                     try:
                         # Read CSV file with additional parameters
-                        df = pd.read_csv(file, delimiter=',', engine='python', error_bad_lines=False, warn_bad_lines=True)
+                        df = pd.read_csv(file, delimiter=',', engine='python')
+                        # Check for potential issues with the DataFrame
+                        if df.empty:
+                            raise ValueError("DataFrame is empty. Check CSV file format.")
                     except pd.errors.ParserError as parse_error:
                         st.error(f"CSV parsing error: {parse_error}")
                         return pd.DataFrame()
@@ -36,6 +39,7 @@ def fetch_latest_data():
     except Exception as e:
         st.error(f"Error fetching data: {e}")
         return pd.DataFrame()
+
 
 def calculate_lindy_scores(graft_data):
     """
