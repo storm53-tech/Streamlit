@@ -10,7 +10,7 @@ def fetch_latest_data():
     """
     try:
         client = storage.Client()
-        bucket_name = 'lindyscore'
+        bucket_name = 'lindyscore'  # Update with your actual bucket name
         file_name = 'Files.zip'
         bucket = client.bucket(bucket_name)
         blob = bucket.blob(file_name)
@@ -20,9 +20,12 @@ def fetch_latest_data():
         with zipfile.ZipFile(io.BytesIO(zip_content)) as z:
             for file_info in z.infolist():
                 with z.open(file_info) as file:
-                    df = pd.read_csv(file, engine='python', on_bad_lines='skip')
+                    # Debug: Print first few lines to check content
+                    print(file.read().decode('utf-8'))
+                    df = pd.read_csv(file, delimiter=',', engine='python', on_bad_lines='skip')
                     break  # Assuming there's only one file in the zip
 
+        print("Columns in DataFrame:", df.columns)
         return df
     except Exception as e:
         st.error(f"Error fetching data: {e}")
