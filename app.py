@@ -3,6 +3,7 @@ import zipfile
 import io
 import requests  # Ensure requests is imported
 import streamlit as st
+import datetime
 
 def fetch_latest_data():
     """
@@ -33,6 +34,8 @@ def fetch_latest_data():
                         if df.empty:
                             print("DataFrame is empty.")
                         
+                        return df
+                    
                     except pd.errors.EmptyDataError:
                         print("No data found in CSV file.")
                     except pd.errors.ParserError:
@@ -42,11 +45,10 @@ def fetch_latest_data():
                     
                     break  # Assuming there's only one file in the zip
 
-        return df
+        return pd.DataFrame()  # Return empty DataFrame if no data found
     except Exception as e:
         print(f"Error fetching data: {e}")
         return pd.DataFrame()
-
 
 def calculate_lindy_scores(graft_data):
     """
@@ -97,3 +99,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
