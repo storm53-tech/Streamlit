@@ -1,28 +1,36 @@
 import pandas as pd
-import datetime
 import zipfile
 import io
 from google.cloud import storage
-import streamlit as st
 
 def fetch_latest_data():
     """
-    Fetch data from Google Cloud Storage and return a DataFrame.
+    Fetch data from Google Cloud Storage and return it as a DataFrame.
     """
     try:
         client = storage.Client()
-        bucket_name = 'lindyscore'
-        file_name = 'graft_data.csv'
+        bucket_name = 'lindyscore'  # Update with your actual bucket name
+        file_name = 'Files.zip'
         bucket = client.bucket(bucket_name)
         blob = bucket.blob(file_name)
-        csv_content = blob.download_as_text()
+        zip_content = blob.download_as_bytes()
 
-        # Load the CSV content into a DataFrame
-        df = pd.read_csv(io.StringIO(csv_content))
+        # Extract the zip file
+        with zipfile.ZipFile(io.BytesIO(zip_content)) as z:
+            for file_info in z.infolist():
+                print(f"Extracting file: {file_info.filename}")
+                with z.open(file_info) as file:
+                    # Debug: Print first few lines to check content
+                    content = file.read().decode('utf-8')
+                    print(content)  # Print the content of the file
+                    df = pd.read_csv(io.StringIO(content), delimiter=',', engine='python', on_bad_lines='skip')
+                    break  # Assuming there's only one file in the zip
+
         return df
     except Exception as e:
-        st.error(f"Error fetching data: {e}")
+        print(f"Error fetching data: {e}")
         return pd.DataFrame()
+
 
 def calculate_lindy_scores(graft_data):
     """
