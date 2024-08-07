@@ -21,9 +21,9 @@ def fetch_latest_data():
         with zipfile.ZipFile(io.BytesIO(zip_content)) as z:
             for file_info in z.infolist():
                 with z.open(file_info) as file:
-                    # Read CSV file with appropriate parameters
                     try:
-                        df = pd.read_csv(file, delimiter=',', engine='python')
+                        # Read CSV file with additional parameters
+                        df = pd.read_csv(file, delimiter=',', engine='python', error_bad_lines=False, warn_bad_lines=True)
                     except pd.errors.ParserError as parse_error:
                         st.error(f"CSV parsing error: {parse_error}")
                         return pd.DataFrame()
