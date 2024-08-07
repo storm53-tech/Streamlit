@@ -31,8 +31,17 @@ def fetch_latest_data():
                 try:
                     # Read CSV data
                     df = pd.read_csv(file, delimiter=',', engine='python')
-                    df.columns = df.columns.str.strip()  # Remove any extra spaces from column names
-                    print("Columns in DataFrame:", df.columns)  # Debug print for columns
+                    
+                    # Print the first few lines of the file for debugging
+                    print("First few lines of CSV data:")
+                    for line in file.readlines()[:5]:
+                        print(line)
+                    
+                    # Remove any extra spaces from column names
+                    df.columns = df.columns.str.strip()
+                    
+                    # Debug print for columns and DataFrame preview
+                    print("Columns in DataFrame:", df.columns)
                     print("DataFrame preview:\n", df.head())
                     
                     # Check if DataFrame is empty
