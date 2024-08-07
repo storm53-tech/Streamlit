@@ -11,7 +11,7 @@ def fetch_latest_data():
     """
     try:
         # Public URL of the file
-        public_url = 'https://storage.googleapis.com/lindyscore/Files.zip'
+        public_url = 'https://storage.googleapis.com/lindyscore/graft_data.csv.zip'
         
         # Download the zip file from the public URL
         response = requests.get(public_url)
