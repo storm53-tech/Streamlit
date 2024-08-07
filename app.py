@@ -16,20 +16,21 @@ def fetch_latest_data():
         blob = bucket.blob(file_name)
         zip_content = blob.download_as_bytes()
 
-        # Extract the zip file
         with zipfile.ZipFile(io.BytesIO(zip_content)) as z:
-            # List files in the zip and read the first CSV file
             for file_info in z.infolist():
                 with z.open(file_info) as file:
-                    df = pd.read_csv(file, delimiter=',', engine='python', on_bad_lines='skip')
+                    # Debug: Print the CSV content to ensure it's read correctly
+                    csv_content = file.read().decode('utf-8')
+                    print("CSV Content:\n", csv_content)
+                    
+                    # Convert CSV content to DataFrame
+                    df = pd.read_csv(io.StringIO(csv_content), delimiter=',', engine='python', on_bad_lines='skip')
                     break  # Assuming there's only one file in the zip
 
         return df
     except Exception as e:
         st.error(f"Error fetching data: {e}")
         return pd.DataFrame()
-
-
 
 def calculate_lindy_scores(graft_data):
     """
