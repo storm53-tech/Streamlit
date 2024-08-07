@@ -2,8 +2,8 @@ import pandas as pd
 import zipfile
 import io
 import requests
-import datetime
 import streamlit as st
+import datetime
 
 def fetch_latest_data():
     """
@@ -11,7 +11,7 @@ def fetch_latest_data():
     """
     try:
         # Public URL of the file
-        public_url = 'https://storage.googleapis.com/your-bucket-name/Files.zip'  # Update with your actual public file URL
+        public_url = 'https://storage.googleapis.com/lindyscore/Files.zip'
 
         # Download the zip file from the public URL
         response = requests.get(public_url)
@@ -90,7 +90,7 @@ def main():
     if not df.empty:
         st.write("Graft Data", df)
             
-        # Check if 'graft_type' column exists
+        # Set index and calculate scores
         if 'graft_type' in df.columns:
             df.set_index('graft_type', inplace=True)
             scores = calculate_lindy_scores(df)
@@ -104,4 +104,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
