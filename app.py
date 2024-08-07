@@ -3,7 +3,6 @@ import zipfile
 import io
 import requests  # Ensure requests is imported
 import streamlit as st
-import datetime
 
 def fetch_latest_data():
     """
@@ -22,17 +21,10 @@ def fetch_latest_data():
             for file_info in z.infolist():
                 print(f"Extracting file: {file_info.filename}")
                 with z.open(file_info) as file:
-                    # Read and print the content to check
-                    content = file.read().decode('utf-8')
-                    print("File content:\n", content)  # Print the content of the file
-                    
-                    # Convert string content to a file-like object
-                    csv_file = io.StringIO(content)
-                    
-                    # Read CSV with correct delimiter
+                    # Read CSV data directly from the file object
                     try:
                         # Read CSV data
-                        df = pd.read_csv(csv_file, delimiter=',', engine='python')
+                        df = pd.read_csv(file, delimiter=',', engine='python')
                         df.columns = df.columns.str.strip()  # Remove any extra spaces from column names
                         print("Columns in DataFrame:", df.columns)  # Debug print for columns
                         print("DataFrame preview:\n", df.head())
@@ -54,6 +46,7 @@ def fetch_latest_data():
     except Exception as e:
         print(f"Error fetching data: {e}")
         return pd.DataFrame()
+
 
 def calculate_lindy_scores(graft_data):
     """
