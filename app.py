@@ -21,7 +21,15 @@ def fetch_latest_data():
         with zipfile.ZipFile(io.BytesIO(zip_content)) as z:
             for file_info in z.infolist():
                 with z.open(file_info) as file:
-                    df = pd.read_csv(file, delimiter=',')
+                    # Read CSV file with appropriate parameters
+                    try:
+                        df = pd.read_csv(file, delimiter=',', engine='python')
+                    except pd.errors.ParserError as parse_error:
+                        st.error(f"CSV parsing error: {parse_error}")
+                        return pd.DataFrame()
+                    except Exception as e:
+                        st.error(f"Error reading CSV file: {e}")
+                        return pd.DataFrame()
                     break  # Assuming there's only one file in the zip
 
         return df
@@ -70,6 +78,7 @@ def main():
 # Run the Streamlit app
 if __name__ == "__main__":
     main()
+
 
 
 
