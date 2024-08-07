@@ -2,8 +2,6 @@ import pandas as pd
 import zipfile
 import io
 from google.cloud import storage
-import datetime
-import streamlit as st
 
 def fetch_latest_data():
     """
@@ -15,8 +13,6 @@ def fetch_latest_data():
         file_name = 'Files.zip'
         bucket = client.bucket(bucket_name)
         blob = bucket.blob(file_name)
-
-        print(f"Attempting to download {file_name} from bucket {bucket_name}...")
         zip_content = blob.download_as_bytes()
 
         # Extract the zip file
@@ -34,7 +30,8 @@ def fetch_latest_data():
                     
                     # Read CSV with different options
                     try:
-                        df = pd.read_csv(csv_file, delimiter=',', engine='python', on_bad_lines='skip')
+                        # Read the CSV file, specifying delimiter and header row
+                        df = pd.read_csv(csv_file, delimiter=',', engine='python', header=0, on_bad_lines='skip')
                         print("Columns in DataFrame:", df.columns)  # Debugging
                         print("DataFrame preview:\n", df.head())  # Debugging
                     except pd.errors.EmptyDataError:
@@ -53,6 +50,7 @@ def fetch_latest_data():
     except Exception as e:
         print(f"Error fetching data: {e}")
         return pd.DataFrame()
+
 
 
 def calculate_lindy_scores(graft_data):
