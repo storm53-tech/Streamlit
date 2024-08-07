@@ -58,8 +58,10 @@ def main():
         st.write("Graft Data")
         st.write(df)
 
-        # Debug: Print columns to ensure 'graft_type' is present
-        st.write("Columns in DataFrame:", df.columns)
+        # Debug: Print first few rows and columns to ensure 'graft_type' is present
+        st.write("Columns in DataFrame:", df.columns.tolist())
+        st.write("First few rows of the DataFrame:")
+        st.write(df.head())
 
         # Set index and calculate scores
         try:
@@ -77,3 +79,4 @@ def main():
 # Run the Streamlit app
 if __name__ == "__main__":
     main()
+
