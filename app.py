@@ -2,8 +2,6 @@ import pandas as pd
 import zipfile
 import io
 from google.cloud import storage
-import streamlit as st
-import datetime
 
 def fetch_latest_data():
     """
@@ -11,7 +9,7 @@ def fetch_latest_data():
     """
     try:
         client = storage.Client()
-        bucket_name = 'lindyscore'  # Update with your actual bucket name
+        bucket_name = 'your-bucket-name'  # Update with your actual bucket name
         file_name = 'Files.zip'
         bucket = client.bucket(bucket_name)
         blob = bucket.blob(file_name)
@@ -19,31 +17,28 @@ def fetch_latest_data():
 
         # Extract the zip file
         with zipfile.ZipFile(io.BytesIO(zip_content)) as z:
-            print(f"Zip file contains: {z.namelist()}")
             for file_info in z.infolist():
-                print(f"Extracting file: {file_info.filename}")  # Debugging
+                print(f"Extracting file: {file_info.filename}")
                 with z.open(file_info) as file:
                     # Read and print the content to check
                     content = file.read().decode('utf-8')
-                    print("File content:\n", content)  # Debugging
+                    print("File content:\n", content)  # Print the content of the file
                     
                     # Convert string content to a file-like object
                     csv_file = io.StringIO(content)
                     
-                    # Try reading with different options if needed
+                    # Read CSV with correct delimiter
                     try:
-                        df = pd.read_csv(csv_file, delimiter=',', engine='python', header=0, on_bad_lines='skip')
-                        print("Columns in DataFrame:", df.columns)  # Debugging
-                        print("DataFrame preview:\n", df.head())  # Debugging
+                        # Read CSV data
+                        df = pd.read_csv(csv_file, delimiter=',', engine='python')
+                        print("Columns in DataFrame:", df.columns)
+                        print("DataFrame preview:\n", df.head())
                     except pd.errors.EmptyDataError:
                         print("No data found in CSV file.")
-                        return pd.DataFrame()
                     except pd.errors.ParserError:
                         print("Error parsing CSV file.")
-                        return pd.DataFrame()
                     except Exception as e:
                         print(f"General error: {e}")
-                        return pd.DataFrame()
                     
                     break  # Assuming there's only one file in the zip
 
@@ -51,7 +46,6 @@ def fetch_latest_data():
     except Exception as e:
         print(f"Error fetching data: {e}")
         return pd.DataFrame()
-
 
 def calculate_lindy_scores(graft_data):
     """
