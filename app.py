@@ -35,7 +35,7 @@ def fetch_latest_data():
             print(f"Extracting file: {csv_file}")
             
             with z.open(csv_file) as file:
-                # Print the raw content of the CSV file for debugging
+                # Read and clean the CSV content
                 raw_content = file.read().decode('utf-8')
                 print("Raw CSV content:\n", raw_content)
                 
@@ -43,8 +43,8 @@ def fetch_latest_data():
                 csv_file = io.StringIO(raw_content)
                 
                 try:
-                    # Read CSV data
-                    df = pd.read_csv(csv_file, delimiter=',', engine='python')
+                    # Read CSV data with additional parameters
+                    df = pd.read_csv(csv_file, delimiter=',', quotechar='"', skipinitialspace=True, engine='python')
                     df.columns = df.columns.str.strip()  # Remove any extra spaces from column names
                     print("Cleaned Columns in DataFrame:", df.columns)  # Debug print for columns
                     print("DataFrame preview:\n", df.head())
@@ -64,6 +64,7 @@ def fetch_latest_data():
     except Exception as e:
         print(f"Error fetching data: {e}")
         return pd.DataFrame()
+
 
 def calculate_lindy_scores(graft_data):
     """
